@@ -24,7 +24,7 @@ func incrementCounter(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	http.HandleFunc("/", echoString)
+	http.Handle("/", http.FileServer(http.Dir("./static")))
 
 	http.HandleFunc("/increment", incrementCounter)
 
@@ -32,5 +32,5 @@ func main() {
 		fmt.Fprintf(w, "Hi")
 	})
 
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Fatal(http.ListenAndServeTLS(":443", "server.crt", "server.key", nil))
 }
