@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +38,16 @@ var surveys = []survey{
 		creates a survey response
 */
 
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = "crazytownbananapants"
+	dbname   = "postgres"
+)
+
 func main() {
+	fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
 	router := gin.Default()
 	router.GET("/surveys", getSurveys)
