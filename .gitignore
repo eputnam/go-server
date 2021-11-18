@@ -1,3 +1,4 @@
 *.crt
 *.key
-go-server
+
+health-check-server

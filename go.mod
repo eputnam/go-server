@@ -1,4 +1,4 @@
-module github.com/eputnam/go-server
+module github.com/eputnam/health-check-server
 
 go 1.17
 
