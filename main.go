@@ -2,40 +2,15 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-type answer struct {
-	QuestionID string `json:"questionId"`
-	Answer     int    `json:"answer"`
-}
-
-type surveyResponse struct {
-	ID      string   `json:"id"`
-	Answers []answer `json:"answers"`
-}
-
-type survey struct {
-	ID        string           `json:"id"`
-	Team      string           `json:"team"`
-	Responses []surveyResponse `json:"responses"`
-}
-
-var surveys = []survey{
-	{ID: "1", Team: "CD4PE", Responses: nil},
-	{ID: "2", Team: "Froyo", Responses: nil},
-	{ID: "3", Team: "Cygnus", Responses: nil},
-}
-
 /*
-    POST /surveys
-    	creates a survey for cd4pe
-		creates a survey URI
-
-	POST /surveys/response?survey={surveyId}
-		creates a survey response
+DB STUFF
 */
 
 const (
@@ -46,54 +21,65 @@ const (
 	dbname   = "postgres"
 )
 
+type SurveyDB struct {
+	gorm.Model
+	Team        string
+	ResponseURL string
+	Active      bool
+	EndTime     time.Time
+}
+
+func (SurveyDB) TableName() string {
+	return "surveys"
+}
+
+type ResponseDB struct {
+	gorm.Model
+	SurveyID   uint
+	QuestionID uint
+	Answer     int
+	UserID     string
+}
+
+func (ResponseDB) TableName() string {
+	return "responses"
+}
+
+type QuestionDB struct {
+	gorm.Model
+	Text     string
+	SurveyID uint
+}
+
+func (QuestionDB) TableName() string {
+	return "questions"
+}
+
+func initializeDB() *gorm.DB {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	checkError(err)
+
+	db.AutoMigrate(&SurveyDB{})
+	db.AutoMigrate(&ResponseDB{})
+	db.AutoMigrate(&QuestionDB{})
+
+	return db
+}
+
+/*
+
+ */
+
+func checkError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
-	fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	initializeDB()
 
 	router := gin.Default()
-	router.GET("/surveys", getSurveys)
-	router.POST("/surveys", postSurvey)
-
 	router.Run("localhost:8080")
-}
-
-func getSurveys(c *gin.Context) {
-	if c.Query("team") != "" {
-		team := c.Query("team")
-
-		for _, s := range surveys {
-			if s.Team == team {
-				c.IndentedJSON(http.StatusOK, s)
-				return
-			}
-		}
-		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "survey not found"})
-	} else {
-		c.IndentedJSON(http.StatusOK, surveys)
-	}
-}
-
-func postSurvey(c *gin.Context) {
-	var newSurvey survey
-
-	// Call BindJSON to bind the received JSON to
-	// newAlbum.
-	if err := c.BindJSON(&newSurvey); err != nil {
-		return
-	}
-
-	// Add the new album to the slice.
-	surveys = append(surveys, newSurvey)
-	c.IndentedJSON(http.StatusCreated, newSurvey)
-}
-
-func getSurveyByTeam(c *gin.Context) {
-	team := c.Query("team")
-
-	for _, s := range surveys {
-		if s.Team == team {
-			c.IndentedJSON(http.StatusOK, s)
-			return
-		}
-	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "survey not found"})
 }
