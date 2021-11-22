@@ -1,21 +1,21 @@
-# Go webserver
-I'm making a webserver in Go!
+# health-check-server
+We're building a backend for team health checks in golang!
 
 # Run the server
 Run this command in the project root
 ```shell
-go run ./server.go
+go run ./main.go
 ```
 
 # Docker
 
 ## The server
-Build the Docker image (optionally set TAG)
+Build the Docker image (optionally set TAG, defaults to latest)
 ```shell
 TAG=my-tag make server-build
 ```
 
-Run the Docker container (optionally set TAG)
+Run the Docker container (optionally set TAG, defaults to latest)
 ```shell
 TAG=my-tag make server-run
 ```
