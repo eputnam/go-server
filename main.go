@@ -2,11 +2,17 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gopkg.in/yaml.v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+)
+
+const (
+	config_path = "config.yaml"
 )
 
 /*
@@ -77,9 +83,33 @@ func checkError(err error) {
 	}
 }
 
+/*
+CONFIG STUFF
+*/
+type AppConfig struct {
+	Server struct {
+		Port string `yaml:"port"`
+	} `yaml:"server"`
+}
+
+func loadConfig() AppConfig {
+	file, err := os.Open(config_path)
+	checkError(err)
+	defer file.Close()
+
+	var config AppConfig
+	decoder := yaml.NewDecoder(file)
+	err = decoder.Decode(&config)
+	checkError(err)
+
+	return config
+}
+
 func main() {
 	initializeDB()
 
+	config := loadConfig()
+
 	router := gin.Default()
-	router.Run("localhost:8080")
+	router.Run("localhost:" + config.Server.Port)
 }

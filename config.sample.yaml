@@ -1,0 +1,5 @@
+# this is a sample config file. 
+# copy this file to "config.yaml" to use with the server
+server:
+  # port the server runs on
+  port: 8080
