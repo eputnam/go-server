@@ -15,6 +15,8 @@ const (
 	config_path = "config.yaml"
 )
 
+var appConfig AppConfig
+
 /*
 DB STUFF
 */
@@ -105,11 +107,13 @@ func loadConfig() AppConfig {
 	return config
 }
 
+func init() {
+	appConfig = loadConfig()
+}
+
 func main() {
 	initializeDB()
 
-	config := loadConfig()
-
 	router := gin.Default()
-	router.Run("localhost:" + config.Server.Port)
+	router.Run("localhost:" + appConfig.Server.Port)
 }
