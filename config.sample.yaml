@@ -3,3 +3,10 @@
 server:
   # port the server runs on
   port: 8080
+github:
+  # repository that contains teams.json and questions.json
+  repository: health-check-server
+  # owner of the repository
+  username: carl
+  # token with access to the repository. needs "repo" permission
+  token: carlsCoolPersonalAccessToken

@@ -1,12 +1,19 @@
 package main
 
 import (
+	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/go-github/v40/github"
+	"golang.org/x/oauth2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -79,6 +86,48 @@ func initializeDB() *gorm.DB {
 
  */
 
+/*
+GITHUB STUFF
+*/
+
+const (
+	teams_path = "teams.json"
+)
+
+type teamsResponse struct {
+	Teams []string
+}
+
+func githubClient() (*github.Client, context.Context) {
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: appConfig.GitHub.Token},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+
+	return github.NewClient(tc), ctx
+}
+
+func getTeamsList(client *github.Client, ctx context.Context) teamsResponse {
+	byteData, err := getGitHubBytes(client, ctx, teams_path)
+	checkError(err)
+
+	var jsonData teamsResponse
+	json.Unmarshal(byteData, &jsonData)
+
+	return jsonData
+}
+
+func getGitHubBytes(client *github.Client, ctx context.Context, path string) ([]byte, error) {
+	content, _, _, err := client.Repositories.GetContents(ctx, appConfig.GitHub.Username, appConfig.GitHub.Repository, path, nil)
+	checkError(err)
+
+	byteData, err := base64.StdEncoding.DecodeString(*content.Content)
+	checkError(err)
+
+	return byteData, err
+}
+
 func checkError(err error) {
 	if err != nil {
 		panic(err)
@@ -92,6 +141,11 @@ type AppConfig struct {
 	Server struct {
 		Port string `yaml:"port"`
 	} `yaml:"server"`
+	GitHub struct {
+		Username   string `yaml:"username"`
+		Repository string `yaml:"repository"`
+		Token      string `yaml:"token"`
+	} `yaml:"github"`
 }
 
 func loadConfig() AppConfig {
@@ -113,7 +167,16 @@ func init() {
 
 func main() {
 	initializeDB()
+	client, ghctx := githubClient()
 
 	router := gin.Default()
+
+	v1 := router.Group("/api/v1")
+	{
+		v1.GET("/teams", func(ginc *gin.Context) {
+			ginc.JSON(http.StatusOK, getTeamsList(client, ghctx))
+		})
+	}
+
 	router.Run("localhost:" + appConfig.Server.Port)
 }

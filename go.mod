@@ -2,14 +2,22 @@ module github.com/eputnam/health-check-server
 
 go 1.17
 
-require github.com/gin-gonic/gin v1.7.4
+require (
+	github.com/gin-gonic/gin v1.7.4
+	github.com/google/go-github/v40 v40.0.0
+	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	gopkg.in/yaml.v2 v2.2.8
+	gorm.io/driver/postgres v1.2.2
+	gorm.io/gorm v1.22.3
+)
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
-	github.com/golang/protobuf v1.3.3 // indirect
+	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.10.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -27,9 +35,9 @@ require (
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gorm.io/driver/postgres v1.2.2 // indirect
-	gorm.io/gorm v1.22.3 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/protobuf v1.25.0 // indirect
 )
