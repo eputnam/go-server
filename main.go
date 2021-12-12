@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/eputnam/health-check-server/api"
 	"gopkg.in/yaml.v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,6 +16,7 @@ const (
 )
 
 var appConfig AppConfig
+var db *gorm.DB
 
 /*
 DB STUFF
@@ -109,11 +110,10 @@ func loadConfig() AppConfig {
 
 func init() {
 	appConfig = loadConfig()
+	db = initializeDB()
 }
 
 func main() {
-	initializeDB()
-
-	router := gin.Default()
-	router.Run("localhost:" + appConfig.Server.Port)
+	server := api.NewServer(db)
+	server.StartServer("localhost:" + appConfig.Server.Port)
 }
