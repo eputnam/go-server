@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"github.com/eputnam/health-check-server/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -71,16 +72,9 @@ func (ds *DataStore) GetTeams() []TeamDB {
 	return teams
 }
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "crazytownbananapants"
-	dbname   = "postgres"
-)
-
-func NewStore() *DataStore {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+func NewStore(conf config.GlobalConfig) *DataStore {
+	dbConf := conf.DB
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbConf.Host, dbConf.Port, dbConf.User, dbConf.Password, dbConf.DBName)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if nil != err {
 		panic(err)
