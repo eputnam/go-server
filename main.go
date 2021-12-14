@@ -47,7 +47,7 @@ func init() {
 }
 
 func main() {
-	db := db.NewDatabase()
-	server := api.NewServer(db)
+	store := db.NewStore()
+	server := api.NewServer(store)
 	server.StartServer("localhost:" + appConfig.Server.Port)
 }
