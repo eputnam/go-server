@@ -1,5 +1,7 @@
 *.crt
 *.key
+.idea/
+*.iml
 
 health-check-server
 

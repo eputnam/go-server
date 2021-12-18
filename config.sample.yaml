@@ -1,5 +1,18 @@
-# this is a sample config file. 
+# this is a sample config file
 # copy this file to "config.yaml" to use with the server
 server:
+  # host the server runs on. this is 0.0.0.0 for Docker reasons and it works fine outside of Docker, too
+  host: 0.0.0.0
   # port the server runs on
   port: 8080
+db:
+  # host the db runs on
+  host: localhost
+  # port the db runs on
+  port: 5432
+  # postgres user
+  user: postgres
+  # postgres password
+  password: crazytownbananapants
+  # name of the db for the server
+  dbname: healthcheck
