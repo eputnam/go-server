@@ -28,8 +28,9 @@ func LoadConfig() GlobalConfig {
 
 	var config GlobalConfig
 	decoder := yaml.NewDecoder(file)
-	err = decoder.Decode(&config)
-	checkError(err)
+	if err := decoder.Decode(&config); nil != err {
+		panic(err)
+	}
 
 	return config
 }

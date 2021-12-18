@@ -56,8 +56,7 @@ func (TeamDB) TableName() string {
 }
 
 func (ds *DataStore) SaveTeam(team TeamDB) TeamDB {
-	result := ds.DB.Create(&team)
-	if nil != result.Error {
+	if result := ds.DB.Create(&team); nil != result.Error {
 		panic(result.Error)
 	}
 	return team
@@ -65,35 +64,32 @@ func (ds *DataStore) SaveTeam(team TeamDB) TeamDB {
 
 func (ds *DataStore) GetTeams() []TeamDB {
 	var teams []TeamDB
-	result := ds.DB.Find(&teams, &TeamDB{})
-	if nil != result.Error {
+	if result := ds.DB.Find(&teams, &TeamDB{}); nil != result.Error {
 		panic(result.Error)
 	}
 	return teams
 }
 
-func NewStore(conf config.GlobalConfig) *DataStore {
+func NewStore(conf config.GlobalConfig) (*DataStore, error) {
 	dbConf := conf.DB
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbConf.Host, dbConf.Port, dbConf.User, dbConf.Password, dbConf.DBName)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if nil != err {
-		panic(err)
+		return nil, err
 	}
 
-	err = db.AutoMigrate(&SurveyDB{})
-	handleError(err)
-	err = db.AutoMigrate(&ResponseDB{})
-	handleError(err)
-	err = db.AutoMigrate(&QuestionDB{})
-	handleError(err)
-	err = db.AutoMigrate(&TeamDB{})
-	handleError(err)
-
-	return &DataStore{DB: db}
-}
-
-func handleError(err error) {
-	if nil != err {
-		panic(err)
+	if err := db.AutoMigrate(&SurveyDB{}); nil != err {
+		return nil, err
 	}
+	if err := db.AutoMigrate(&ResponseDB{}); nil != err {
+		return nil, err
+	}
+	if err := db.AutoMigrate(&QuestionDB{}); nil != err {
+		return nil, err
+	}
+	if err := db.AutoMigrate(&TeamDB{}); nil != err {
+		return nil, err
+	}
+
+	return &DataStore{DB: db}, nil
 }

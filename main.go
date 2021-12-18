@@ -13,7 +13,10 @@ func init() {
 }
 
 func main() {
-	store := db.NewStore(globalConfig)
+	store, err := db.NewStore(globalConfig)
+	if nil != err {
+		panic(err)
+	}
 	server := api.NewServer(store)
 	server.StartServer(globalConfig.Server.Host + ":" + globalConfig.Server.Port)
 }
