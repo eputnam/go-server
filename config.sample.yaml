@@ -16,3 +16,8 @@ db:
   password: crazytownbananapants
   # name of the db for the server
   dbname: healthcheck
+  # GORM log level
+  loglevel: error
+logrus:
+  # global logrus level
+  level: debug
