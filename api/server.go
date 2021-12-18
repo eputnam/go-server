@@ -3,6 +3,8 @@ package api
 import (
 	"github.com/eputnam/health-check-server/db"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"github.com/toorop/gin-logrus"
 )
 
 type Server struct {
@@ -12,7 +14,11 @@ type Server struct {
 
 func NewServer(db *db.DataStore) *Server {
 	server := &Server{DB: db}
-	router := gin.Default()
+
+	log := logrus.New()
+
+	router := gin.New()
+	router.Use(ginlogrus.Logger(log), gin.Recovery())
 
 	// router stuff
 	basePath := "/api"

@@ -3,9 +3,12 @@ package db
 import (
 	"fmt"
 	"github.com/eputnam/health-check-server/config"
-
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"log"
+	"os"
 )
 
 type DataStore struct {
@@ -51,6 +54,10 @@ type TeamDB struct {
 	Name string
 }
 
+func (teamdb TeamDB) toLogString() string {
+	return fmt.Sprintf("Name: %s, ID=%d", teamdb.Name, teamdb.ID)
+}
+
 func (TeamDB) TableName() string {
 	return "teams"
 }
@@ -59,6 +66,7 @@ func (ds *DataStore) SaveTeam(team TeamDB) TeamDB {
 	if result := ds.DB.Create(&team); nil != result.Error {
 		panic(result.Error)
 	}
+	logrus.Debugf("Successfully saved team %s", team.toLogString())
 	return team
 }
 
@@ -67,13 +75,15 @@ func (ds *DataStore) GetTeams() []TeamDB {
 	if result := ds.DB.Find(&teams, &TeamDB{}); nil != result.Error {
 		panic(result.Error)
 	}
+	logrus.Debug("Successfully got list of teams")
 	return teams
 }
 
 func NewStore(conf config.GlobalConfig) (*DataStore, error) {
 	dbConf := conf.DB
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbConf.Host, dbConf.Port, dbConf.User, dbConf.Password, dbConf.DBName)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: newLogger(conf)})
+	logrus.Infof("Connected to database at %s:%s", dbConf.Host, dbConf.Port)
 	if nil != err {
 		return nil, err
 	}
@@ -92,4 +102,10 @@ func NewStore(conf config.GlobalConfig) (*DataStore, error) {
 	}
 
 	return &DataStore{DB: db}, nil
+}
+
+func newLogger(conf config.GlobalConfig) logger.Interface {
+	return logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{LogLevel: conf.GetDbLogLevel(), Colorful: true})
 }

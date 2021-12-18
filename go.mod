@@ -2,7 +2,14 @@ module github.com/eputnam/health-check-server
 
 go 1.17
 
-require github.com/gin-gonic/gin v1.7.4
+require (
+	github.com/gin-gonic/gin v1.7.4
+	github.com/sirupsen/logrus v1.4.2
+	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
+	gopkg.in/yaml.v2 v2.4.0
+	gorm.io/driver/postgres v1.2.2
+	gorm.io/gorm v1.22.3
+)
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -21,6 +28,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/json-iterator/go v1.1.9 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
@@ -29,7 +37,4 @@ require (
 	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gorm.io/driver/postgres v1.2.2 // indirect
-	gorm.io/gorm v1.22.3 // indirect
 )
