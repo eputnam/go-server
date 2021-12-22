@@ -26,6 +26,13 @@ type GlobalConfig struct {
 	Logrus struct {
 		Level string `yaml:"level"`
 	} `yaml:"logrus"`
+	GitHub GitHubConfig `yaml:"github"`
+}
+
+type GitHubConfig struct {
+	Username   string `yaml:"username"`
+	Repository string `yaml:"repository"`
+	Token      string `yaml:"token"`
 }
 
 func LoadConfig() GlobalConfig {
@@ -66,6 +73,8 @@ func (gc *GlobalConfig) GetDbLogLevel() logger.LogLevel {
 func (gc *GlobalConfig) GetLogrusLevel() logrus.Level {
 	configLevel := strings.ToLower(gc.Logrus.Level)
 	switch configLevel {
+	case "trace":
+		return logrus.TraceLevel
 	case "debug":
 		return logrus.DebugLevel
 	case "error":

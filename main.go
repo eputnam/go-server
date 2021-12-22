@@ -17,6 +17,6 @@ func main() {
 	if nil != err {
 		panic(err)
 	}
-	server := api.NewServer(store)
+	server := api.NewServer(store, globalConfig)
 	server.StartServer(globalConfig.Server.Host + ":" + globalConfig.Server.Port)
 }

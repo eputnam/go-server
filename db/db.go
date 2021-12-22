@@ -19,7 +19,6 @@ type SurveyDB struct {
 	gorm.Model
 	Team        string
 	ResponseURL string
-	Active      bool
 	EndTime     int64
 }
 
@@ -43,6 +42,7 @@ type QuestionDB struct {
 	gorm.Model
 	Text     string
 	SurveyID uint
+	Order    int
 }
 
 func (QuestionDB) TableName() string {
@@ -60,6 +60,40 @@ func (teamdb TeamDB) toLogString() string {
 
 func (TeamDB) TableName() string {
 	return "teams"
+}
+
+func (ds *DataStore) SaveQuestion(q QuestionDB) QuestionDB {
+	if result := ds.DB.Create(&q); nil != result.Error {
+		panic(result.Error)
+	}
+	logrus.Debugf("Successfully saved question %d", q.ID)
+	return q
+}
+
+func (ds *DataStore) GetQuestionsForSurvey(surveyId uint64) []QuestionDB {
+	var questions []QuestionDB
+	if result := ds.DB.Find(&questions, "survey_id = ?", surveyId); nil != result.Error {
+		panic(result.Error)
+	}
+	logrus.Debugf("Successfully found questions for survey %d", surveyId)
+	return questions
+}
+
+func (ds *DataStore) SaveSurvey(survey SurveyDB) SurveyDB {
+	if result := ds.DB.Create(&survey); nil != result.Error {
+		panic(result.Error)
+	}
+	logrus.Debugf("Successfuly saved survey %d", survey.ID)
+	return survey
+}
+
+func (ds *DataStore) GetSurvey(id uint64) (SurveyDB, error) {
+	var survey SurveyDB
+	if result := ds.DB.First(&survey, id); nil != result.Error {
+		return SurveyDB{}, result.Error
+	}
+	logrus.Debugf("Succesfully retrieved survey %d", survey.ID)
+	return survey, nil
 }
 
 func (ds *DataStore) SaveTeam(team TeamDB) TeamDB {
@@ -83,10 +117,10 @@ func NewStore(conf config.GlobalConfig) (*DataStore, error) {
 	dbConf := conf.DB
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbConf.Host, dbConf.Port, dbConf.User, dbConf.Password, dbConf.DBName)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: newLogger(conf)})
-	logrus.Infof("Connected to database at %s:%s", dbConf.Host, dbConf.Port)
 	if nil != err {
 		return nil, err
 	}
+	logrus.Infof("Connected to database at %s:%s", dbConf.Host, dbConf.Port)
 
 	if err := db.AutoMigrate(&SurveyDB{}); nil != err {
 		return nil, err
