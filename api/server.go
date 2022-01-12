@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/eputnam/health-check-server/config"
 	"github.com/eputnam/health-check-server/db"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -10,10 +11,11 @@ import (
 type Server struct {
 	DB     *db.DataStore
 	Router *gin.Engine
+	Config config.GlobalConfig
 }
 
-func NewServer(db *db.DataStore) *Server {
-	server := &Server{DB: db}
+func NewServer(db *db.DataStore, c config.GlobalConfig) *Server {
+	server := &Server{DB: db, Config: c}
 
 	log := logrus.New()
 
@@ -26,6 +28,10 @@ func NewServer(db *db.DataStore) *Server {
 	{
 		v1Group.POST("/teams", server.CreateTeam)
 		v1Group.GET("/teams", server.GetTeams)
+
+		v1Group.POST("/surveys", server.CreateSurvey)
+		v1Group.GET("/surveys/:id", server.GetSurvey)
+		v1Group.GET("/surveys", server.GetSurveysByTeam)
 	}
 
 	server.Router = router

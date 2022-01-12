@@ -21,3 +21,10 @@ db:
 logrus:
   # global logrus level
   level: debug
+github:
+  # github user
+  username: carl
+  # repository containing questions
+  repository: coolRepo
+  # access token for repository
+  token: coolToken
