@@ -24,7 +24,7 @@ func (server *Server) CreateTeam(ginc *gin.Context) {
 		panic(err)
 	}
 
-	newTeam := db.TeamDB{Name: request.Name}
+	newTeam := db.Team{Name: request.Name}
 
 	team := server.DB.SaveTeam(newTeam)
 

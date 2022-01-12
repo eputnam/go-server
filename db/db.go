@@ -15,18 +15,14 @@ type DataStore struct {
 	DB *gorm.DB
 }
 
-type SurveyDB struct {
+type Survey struct {
 	gorm.Model
-	Team        string
+	TeamID      uint
 	ResponseURL string
 	EndTime     int64
 }
 
-func (SurveyDB) TableName() string {
-	return "surveys"
-}
-
-type ResponseDB struct {
+type QuestionResponse struct {
 	gorm.Model
 	SurveyID   uint
 	QuestionID uint
@@ -34,35 +30,27 @@ type ResponseDB struct {
 	UserID     string
 }
 
-func (ResponseDB) TableName() string {
-	return "responses"
-}
-
-type QuestionDB struct {
+type Question struct {
 	gorm.Model
 	Text     string
 	SurveyID uint
 	Order    int
 }
 
-func (QuestionDB) TableName() string {
-	return "questions"
-}
-
-type TeamDB struct {
+type Team struct {
 	gorm.Model
 	Name string
 }
 
-func (teamdb TeamDB) toLogString() string {
-	return fmt.Sprintf("Name: %s, ID=%d", teamdb.Name, teamdb.ID)
+func (team Team) toLogString() string {
+	return fmt.Sprintf("Name: %s, ID=%d", team.Name, team.ID)
 }
 
-func (TeamDB) TableName() string {
+func (Team) TableName() string {
 	return "teams"
 }
 
-func (ds *DataStore) SaveQuestion(q QuestionDB) QuestionDB {
+func (ds *DataStore) SaveQuestion(q Question) Question {
 	if result := ds.DB.Create(&q); nil != result.Error {
 		panic(result.Error)
 	}
@@ -70,8 +58,8 @@ func (ds *DataStore) SaveQuestion(q QuestionDB) QuestionDB {
 	return q
 }
 
-func (ds *DataStore) GetQuestionsForSurvey(surveyId uint64) []QuestionDB {
-	var questions []QuestionDB
+func (ds *DataStore) GetQuestionsForSurvey(surveyId uint64) []Question {
+	var questions []Question
 	if result := ds.DB.Find(&questions, "survey_id = ?", surveyId); nil != result.Error {
 		panic(result.Error)
 	}
@@ -79,7 +67,7 @@ func (ds *DataStore) GetQuestionsForSurvey(surveyId uint64) []QuestionDB {
 	return questions
 }
 
-func (ds *DataStore) SaveSurvey(survey SurveyDB) SurveyDB {
+func (ds *DataStore) SaveSurvey(survey Survey) Survey {
 	if result := ds.DB.Create(&survey); nil != result.Error {
 		panic(result.Error)
 	}
@@ -87,16 +75,25 @@ func (ds *DataStore) SaveSurvey(survey SurveyDB) SurveyDB {
 	return survey
 }
 
-func (ds *DataStore) GetSurvey(id uint64) (SurveyDB, error) {
-	var survey SurveyDB
+func (ds *DataStore) GetSurvey(id uint64) (Survey, error) {
+	var survey Survey
 	if result := ds.DB.First(&survey, id); nil != result.Error {
-		return SurveyDB{}, result.Error
+		return Survey{}, result.Error
 	}
 	logrus.Debugf("Succesfully retrieved survey %d", survey.ID)
 	return survey, nil
 }
 
-func (ds *DataStore) SaveTeam(team TeamDB) TeamDB {
+func (ds *DataStore) GetSurveysByTeam(teamId uint) ([]Survey, error) {
+	var surveys []Survey
+	if result := ds.DB.Find(&surveys, "team_id = ?", teamId); nil != result.Error {
+		return []Survey{}, result.Error
+	}
+	logrus.Debugf("Succesfully retrieved teams for team %d", teamId)
+	return surveys, nil
+}
+
+func (ds *DataStore) SaveTeam(team Team) Team {
 	if result := ds.DB.Create(&team); nil != result.Error {
 		panic(result.Error)
 	}
@@ -104,9 +101,9 @@ func (ds *DataStore) SaveTeam(team TeamDB) TeamDB {
 	return team
 }
 
-func (ds *DataStore) GetTeams() []TeamDB {
-	var teams []TeamDB
-	if result := ds.DB.Find(&teams, &TeamDB{}); nil != result.Error {
+func (ds *DataStore) GetTeams() []Team {
+	var teams []Team
+	if result := ds.DB.Find(&teams, &Team{}); nil != result.Error {
 		panic(result.Error)
 	}
 	logrus.Debug("Successfully got list of teams")
@@ -122,16 +119,16 @@ func NewStore(conf config.GlobalConfig) (*DataStore, error) {
 	}
 	logrus.Infof("Connected to database at %s:%s", dbConf.Host, dbConf.Port)
 
-	if err := db.AutoMigrate(&SurveyDB{}); nil != err {
+	if err := db.AutoMigrate(&Survey{}); nil != err {
 		return nil, err
 	}
-	if err := db.AutoMigrate(&ResponseDB{}); nil != err {
+	if err := db.AutoMigrate(&QuestionResponse{}); nil != err {
 		return nil, err
 	}
-	if err := db.AutoMigrate(&QuestionDB{}); nil != err {
+	if err := db.AutoMigrate(&Question{}); nil != err {
 		return nil, err
 	}
-	if err := db.AutoMigrate(&TeamDB{}); nil != err {
+	if err := db.AutoMigrate(&Team{}); nil != err {
 		return nil, err
 	}
 

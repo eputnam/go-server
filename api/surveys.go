@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -28,14 +29,14 @@ type QuestionAPI struct {
 
 type SurveyAPI struct {
 	ID           uint          `json:"id"`
-	Team         string        `json:"team"`
+	Team         TeamAPI       `json:"team"`
 	Questions    []QuestionAPI `json:"questions"`
 	Active       bool          `json:"active"`
 	MaxResponses int           `json:"maxResponses"`
 }
 
 type CreateSurveyRequest struct {
-	Team         string `json:"team" binding:"required"`
+	TeamID       string `json:"teamId"`
 	MaxResponses int    `json:"maxResponses"`
 }
 
@@ -54,7 +55,8 @@ func (server *Server) CreateSurvey(ginc *gin.Context) {
 
 	surveyTimeoutMilli := int64(6 * 60 * 1000)
 	endTime := time.Now().UnixMilli() + surveyTimeoutMilli
-	newSurvey := db.SurveyDB{Team: request.Team, EndTime: endTime, ResponseURL: "placeholder"}
+	teamId, err := strconv.ParseUint(request.TeamID, 10, 1)
+	newSurvey := db.Survey{TeamID: teamId, EndTime: endTime, ResponseURL: "placeholder"}
 	surveyDb := server.DB.SaveSurvey(newSurvey)
 
 	client := vcs.NewClient(server.Config.GitHub)
@@ -67,7 +69,7 @@ func (server *Server) CreateSurvey(ginc *gin.Context) {
 	var qr []QuestionAPI
 
 	for i, v := range questions.Questions {
-		questionDB := server.DB.SaveQuestion(db.QuestionDB{Text: v, Order: i, SurveyID: surveyDb.ID})
+		questionDB := server.DB.SaveQuestion(db.Question{Text: v, Order: i, SurveyID: surveyDb.ID})
 		qr = append(qr, questionDbToApi(questionDB))
 	}
 
@@ -84,6 +86,7 @@ func (server *Server) GetSurvey(ginc *gin.Context) {
 		return
 	}
 	surveyDb, err := server.DB.GetSurvey(request.ID)
+	logrus.Info(surveyDb)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		ginc.JSON(http.StatusNotFound, err)
 		return
@@ -96,16 +99,20 @@ func (server *Server) GetSurvey(ginc *gin.Context) {
 	ginc.JSON(http.StatusOK, &surveyApi)
 }
 
-func surveyDbToApi(s db.SurveyDB, q []QuestionAPI) SurveyAPI {
-	active := time.Now().UnixMilli() > s.EndTime
-	return SurveyAPI{ID: s.ID, Team: s.Team, Active: active, Questions: q}
+func (server *Server) GetSurveysByTeam(ginc *gin.Context) {
+
 }
 
-func questionDbToApi(q db.QuestionDB) QuestionAPI {
+func surveyDbToApi(s db.Survey, q []QuestionAPI) SurveyAPI {
+	active := time.Now().UnixMilli() > s.EndTime
+	return SurveyAPI{ID: s.ID, Team: TeamAPI{ID: s.Team.ID, Name: s.Team.Name}, Active: active, Questions: q}
+}
+
+func questionDbToApi(q db.Question) QuestionAPI {
 	return QuestionAPI{ID: q.ID, Text: q.Text, SurveyID: q.SurveyID, Order: q.Order}
 }
 
-func questionsDbToApi(qdb []db.QuestionDB) []QuestionAPI {
+func questionsDbToApi(qdb []db.Question) []QuestionAPI {
 	var qapi []QuestionAPI
 	for _, v := range qdb {
 		qapi = append(qapi, questionDbToApi(v))
@@ -114,5 +121,5 @@ func questionsDbToApi(qdb []db.QuestionDB) []QuestionAPI {
 }
 
 func (c *CreateSurveyRequest) toLogString() string {
-	return fmt.Sprintf("Team=%s MaxResponses=%d", c.Team, c.MaxResponses)
+	return fmt.Sprintf("TeamID=%d MaxResponses=%d", c.TeamID, c.MaxResponses)
 }

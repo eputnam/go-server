@@ -31,6 +31,7 @@ func NewServer(db *db.DataStore, c config.GlobalConfig) *Server {
 
 		v1Group.POST("/surveys", server.CreateSurvey)
 		v1Group.GET("/surveys/:id", server.GetSurvey)
+		v1Group.GET("/surveys", server.GetSurveysByTeam)
 	}
 
 	server.Router = router
